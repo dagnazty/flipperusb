@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>FlipperUSB</title>
+    <!-- Add favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <!-- SEO Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FlipperUSB - A web-based file manager for Flipper devices. Easily browse, edit, and manage files on your Flipper device through your browser.">
+    <meta name="keywords" content="flipper, file browser, file manager, flipper zero, file editor, web interface">
+    <meta name="author" content="dag nazty">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://flipperusb.lol/">
+    <meta property="og:title" content="FlipperUSB">   
+    <meta property="og:description" content="A web-based file manager for Flipper devices. Browse, edit, and manage your Flipper files with ease.">
+    <meta property="og:image" content="https://flipperusb.lol/assets/social_logo.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://flipperusb.lol/">
+    <meta property="twitter:title" content="FlipperUSB">
+    <meta property="twitter:description" content="A web-based file manager for Flipper devices. Browse, edit, and manage your Flipper files with ease.">
+    <meta property="twitter:image" content="https://flipperusb.lol/assets/social_logo.png">
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <img src="assets/orange_logo.png" alt="Flipper" class="flipper-logo">
+                <h1>FlipperUSB</h1>
+                <div id="statusIndicator" class="status-dot disconnected"></div>
+            </div>
+            <div class="header-right">
+                <button id="connectBtn" class="flipper-button">Connect to Flipper</button>
+                <button id="disconnectBtn" class="flipper-button danger" style="display: none;">Disconnect</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="file-explorer">
+                <div class="path-navigator">
+                    <button id="parentDir" class="flipper-button small">Up</button>
+                    <span id="currentPath" class="path-display">/</span>
+                </div>
+                <div class="file-actions">
+                    <label class="flipper-button small">
+                        Upload File
+                        <input type="file" id="fileUpload" style="display: none;">
+                    </label>
+                    <button id="newFileBtn" class="flipper-button small">New File</button>
+                </div>
+                <div id="fileList" class="file-list"></div>
+            </div>
+
+            <div class="editor-container">
+                <div class="editor-header">
+                    <span id="currentFile" class="current-file">No file selected</span>
+                    <button id="saveBtn" class="flipper-button primary" disabled>Save</button>
+                </div>
+                <textarea id="editor" disabled placeholder="Select a file to edit..."></textarea>
+            </div>
+        </main>
+
+        <footer>
+            <div class="console-controls">
+                <button id="toggleConsole" class="flipper-button small">Show Console</button>
+                <button id="clearConsole" class="flipper-button small">Clear</button>
+            </div>
+            <div id="consoleOutput" class="console-output" style="display: none;"></div>
+            
+            <!-- Creator credit -->
+            <div class="creator-credit">
+                Created by <a href="https://linktr.ee/dagnazty" target="_blank" rel="noopener noreferrer">dag</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/serial.js"></script>
+    <script src="js/editor.js"></script>
+</body>
+</html> 
