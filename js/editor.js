@@ -111,24 +111,40 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     }
 });
 
-document.getElementById('downloadBtn').addEventListener('click', () => {
+document.getElementById('downloadBtn').addEventListener('click', async () => {
     if (!currentFile) return;
 
-    const content = document.getElementById('editor').value;
-    const filename = currentFile.split('/').pop();
+    const downloadBtn = document.getElementById('downloadBtn');
+    downloadBtn.disabled = true;
+    downloadBtn.textContent = 'Reading...';
 
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
+    try {
+        // Read directly from Flipper to avoid encoding issues
+        const content = await flipper.readFile(currentFile);
+        if (content === null) {
+            throw new Error('Failed to read file');
+        }
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+        const filename = currentFile.split('/').pop();
+        const blob = new Blob([content], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
 
-    debugLog.success(`File downloaded: ${filename}`);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        debugLog.success(`File downloaded: ${filename}`);
+    } catch (error) {
+        debugLog.error(`Download error: ${error.message}`);
+        alert('Failed to download file. Please try again.');
+    } finally {
+        downloadBtn.textContent = 'Download';
+        downloadBtn.disabled = false;
+    }
 });
 
 document.getElementById('parentDir').addEventListener('click', async () => {
