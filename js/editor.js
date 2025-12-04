@@ -81,22 +81,22 @@ document.getElementById('connectBtn').addEventListener('click', async () => {
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
     if (!currentFile) return;
-    
+
     const content = document.getElementById('editor').value;
     const saveBtn = document.getElementById('saveBtn');
-    
+
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
-    
+
     try {
         const success = await flipper.writeFile(currentFile, content);
         if (!success) {
             throw new Error('Save failed');
         }
-        
+
         saveBtn.textContent = 'Saved!';
         debugLog.success(`File saved: ${currentFile}`);
-        
+
         // Refresh file list after successful save
         await loadFileList(false);
     } catch (error) {
@@ -109,6 +109,26 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
             saveBtn.disabled = false;
         }, 2000);
     }
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+    if (!currentFile) return;
+
+    const content = document.getElementById('editor').value;
+    const filename = currentFile.split('/').pop();
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    debugLog.success(`File downloaded: ${filename}`);
 });
 
 document.getElementById('parentDir').addEventListener('click', async () => {
@@ -316,18 +336,20 @@ async function loadFile(path) {
     debugLog.info(`Loading file: ${path}`);
     const content = await flipper.readFile(path);
     const editor = document.getElementById('editor');
-    
+
     if (content !== null) {
         currentFile = path;
         document.getElementById('currentFile').textContent = path;
         editor.value = content;
         editor.disabled = false;  // Enable the editor
         document.getElementById('saveBtn').disabled = false;
+        document.getElementById('downloadBtn').disabled = false;
         debugLog.success(`File loaded: ${path}`);
     } else {
         editor.value = '';
         editor.disabled = true;   // Disable if load failed
         document.getElementById('saveBtn').disabled = true;
+        document.getElementById('downloadBtn').disabled = true;
         debugLog.error(`Failed to load file: ${path}`);
     }
 }

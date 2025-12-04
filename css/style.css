@@ -164,6 +164,11 @@ main {
     align-items: center;
 }
 
+.editor-buttons {
+    display: flex;
+    gap: 8px;
+}
+
 #editor {
     width: 100%;
     height: 600px;
