@@ -178,20 +178,11 @@ elements.disconnectBtn.addEventListener('click', async () => {
         elements.disconnectBtn.style.display = 'none';
         updateConnectionStatus('disconnected');
 
-        // Clear the file list
-        elements.fileList.innerHTML = `
-            <div class="empty-dir">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                </svg>
-                <p>Connect your Flipper to get started</p>
-                <button class="flipper-button small" onclick="document.getElementById('connectBtn').click()">
-                    Connect Now
-                </button>
-            </div>
-        `;
-        elements.currentPath.innerHTML = '/';
+        // Reset to root with quick access
         currentPath = '/';
+        elements.currentPath.innerHTML = getPathBreadcrumbs(currentPath);
+        renderQuickAccess();
+
         currentFile = null;
         elements.fileActions.style.display = 'none';
 
@@ -397,14 +388,16 @@ async function loadFileList(resetScroll = true) {
         elements.fileList.innerHTML = '';
         allFiles = items; // Cache for search
 
-        // Handle root directory
+        // Handle root directory - show quick access AND directory listing
         if (currentPath === '/') {
             elements.fileActions.style.display = 'none';
             renderQuickAccess();
+            // Also render the directory items below quick access
+            renderFileItems(items, true); // true = append mode
         } else {
             elements.fileActions.style.display = 'flex';
             updateNewFileButtonLabel();
-            renderFileItems(items);
+            renderFileItems(items, false);
         }
     } catch (error) {
         elements.fileList.innerHTML = `
@@ -474,8 +467,8 @@ function renderQuickAccess() {
     });
 }
 
-function renderFileItems(items) {
-    if (items.length === 0) {
+function renderFileItems(items, appendMode = false) {
+    if (items.length === 0 && !appendMode) {
         elements.fileList.innerHTML = `
             <div class="empty-dir">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -489,6 +482,9 @@ function renderFileItems(items) {
         `;
         return;
     }
+
+    // If no items in append mode (root), just return - quick access already shown
+    if (items.length === 0) return;
 
     // Sort: directories first, then alphabetically
     const sortedItems = items.sort((a, b) => {
@@ -854,3 +850,21 @@ window.addEventListener('beforeunload', (e) => {
 
 // Set initial state
 updateConnectionStatus('disconnected');
+
+// Initialize quick access buttons that are in the HTML by default
+function initQuickAccessButtons() {
+    document.querySelectorAll('.quick-access button').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            // Check if connected before navigating
+            if (!flipper.port) {
+                toast.warning('Connect your Flipper first to browse files');
+                return;
+            }
+            currentPath = btn.dataset.path;
+            await loadFileList();
+        });
+    });
+}
+
+// Run initialization
+initQuickAccessButtons();
