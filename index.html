@@ -1,86 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>FlipperUSB</title>
-    <!-- Add favicon -->
+    <title>FlipperUSB - Web File Manager</title>
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    
     <!-- SEO Meta Tags -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="FlipperUSB - A web-based file manager for Flipper devices. Easily browse, edit, and manage files on your Flipper device through your browser.">
-    <meta name="keywords" content="flipper, file browser, file manager, flipper zero, file editor, web interface">
+    <meta name="description" content="FlipperUSB - A modern web-based file manager for Flipper Zero devices. Easily browse, edit, and manage files on your Flipper through your browser.">
+    <meta name="keywords" content="flipper, file browser, file manager, flipper zero, file editor, web interface, badusb, subghz, nfc, infrared">
     <meta name="author" content="dag nazty">
+    <meta name="theme-color" content="#FF8200">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://flipperusb.lol/">
-    <meta property="og:title" content="FlipperUSB">   
-    <meta property="og:description" content="A web-based file manager for Flipper devices. Browse, edit, and manage your Flipper files with ease.">
+    <meta property="og:title" content="FlipperUSB - Web File Manager">   
+    <meta property="og:description" content="A modern web-based file manager for Flipper Zero devices. Browse, edit, and manage your Flipper files with ease.">
     <meta property="og:image" content="https://flipperusb.lol/assets/social_logo.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://flipperusb.lol/">
-    <meta property="twitter:title" content="FlipperUSB">
-    <meta property="twitter:description" content="A web-based file manager for Flipper devices. Browse, edit, and manage your Flipper files with ease.">
+    <meta property="twitter:title" content="FlipperUSB - Web File Manager">
+    <meta property="twitter:description" content="A modern web-based file manager for Flipper Zero devices. Browse, edit, and manage your Flipper files with ease.">
     <meta property="twitter:image" content="https://flipperusb.lol/assets/social_logo.png">
 
+    <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <header>
             <div class="header-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle file explorer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
                 <img src="assets/orange_logo.png" alt="Flipper" class="flipper-logo">
                 <h1>FlipperUSB</h1>
-                <div id="statusIndicator" class="status-dot disconnected"></div>
+                <div id="statusIndicator" class="status-dot disconnected" title="Disconnected"></div>
             </div>
             <div class="header-right">
-                <button id="connectBtn" class="flipper-button">Connect to Flipper</button>
-                <button id="disconnectBtn" class="flipper-button danger" style="display: none;">Disconnect</button>
+                <button id="connectBtn" class="flipper-button">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                        <line x1="12" y1="2" x2="12" y2="12"/>
+                    </svg>
+                    <span>Connect</span>
+                </button>
+                <button id="disconnectBtn" class="flipper-button danger" style="display: none;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                        <line x1="12" y1="2" x2="12" y2="12"/>
+                    </svg>
+                    <span>Disconnect</span>
+                </button>
             </div>
         </header>
 
+        <!-- Main Content -->
         <main>
-            <div class="file-explorer">
-                <div class="path-navigator">
-                    <button id="parentDir" class="flipper-button small">Up</button>
-                    <span id="currentPath" class="path-display">/</span>
+            <!-- File Explorer Panel -->
+            <div class="file-explorer" id="fileExplorer">
+                <!-- Search -->
+                <div class="file-explorer-header">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                        </svg>
+                        <input type="text" id="searchInput" placeholder="Search files..." aria-label="Search files">
+                    </div>
+                    
+                    <!-- Path Navigator -->
+                    <div class="path-navigator">
+                        <button id="parentDir" class="flipper-button small ghost" title="Go up">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 18l-6-6 6-6"/>
+                            </svg>
+                        </button>
+                        <span id="currentPath" class="path-display">/</span>
+                    </div>
                 </div>
-                <div class="file-actions">
-                    <label class="flipper-button small">
-                        Upload File
-                        <input type="file" id="fileUpload" style="display: none;">
+                
+                <!-- File Actions -->
+                <div class="file-actions" id="fileActions">
+                    <label class="flipper-button small secondary">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span>Upload</span>
+                        <input type="file" id="fileUpload" style="display: none;" multiple>
                     </label>
-                    <button id="newFileBtn" class="flipper-button small">New File</button>
+                    <button id="newFileBtn" class="flipper-button small secondary">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="12" y1="18" x2="12" y2="12"/>
+                            <line x1="9" y1="15" x2="15" y2="15"/>
+                        </svg>
+                        <span>New File</span>
+                    </button>
                 </div>
-                <div id="fileList" class="file-list"></div>
+                
+                <!-- File List with Drop Zone -->
+                <div id="fileList" class="file-list">
+                    <!-- Files will be loaded here -->
+                    <div class="empty-dir" id="emptyState">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <p>Connect your Flipper to get started</p>
+                        <button class="flipper-button small" onclick="document.getElementById('connectBtn').click()">
+                            Connect Now
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Drop Zone Overlay -->
+                <div class="drop-zone" id="dropZone" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p>Drop files here to upload</p>
+                </div>
             </div>
 
+            <!-- Editor Panel -->
             <div class="editor-container">
                 <div class="editor-header">
-                    <span id="currentFile" class="current-file">No file selected</span>
-                    <button id="saveBtn" class="flipper-button primary" disabled>Save</button>
+                    <span id="currentFile" class="current-file">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        No file selected
+                    </span>
+                    <div class="editor-actions">
+                        <button id="downloadBtn" class="flipper-button small ghost" disabled title="Download file (Ctrl+D)">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                        </button>
+                        <button id="saveBtn" class="flipper-button small primary" disabled title="Save file (Ctrl+S)">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17 21 17 13 7 13 7 21"/>
+                                <polyline points="7 3 7 8 15 8"/>
+                            </svg>
+                            <span>Save</span>
+                        </button>
+                    </div>
                 </div>
                 <textarea id="editor" disabled placeholder="Select a file to edit..."></textarea>
             </div>
         </main>
 
+        <!-- Footer -->
         <footer>
             <div class="console-controls">
-                <button id="toggleConsole" class="flipper-button small">Show Console</button>
-                <button id="clearConsole" class="flipper-button small">Clear</button>
+                <button id="toggleConsole" class="flipper-button small ghost">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="4 17 10 11 4 5"/>
+                        <line x1="12" y1="19" x2="20" y2="19"/>
+                    </svg>
+                    <span>Console</span>
+                </button>
+                <button id="clearConsole" class="flipper-button small ghost">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    <span>Clear</span>
+                </button>
             </div>
             <div id="consoleOutput" class="console-output" style="display: none;"></div>
             
             <!-- Creator credit -->
             <div class="creator-credit">
-                Created by <a href="https://linktr.ee/dagnazty" target="_blank" rel="noopener noreferrer">dag</a>
+                Created with 🧡 by <a href="https://linktr.ee/dagnazty" target="_blank" rel="noopener noreferrer">dag</a>
             </div>
         </footer>
     </div>
 
+    <!-- Scripts -->
+    <script src="js/toast.js"></script>
     <script src="js/serial.js"></script>
     <script src="js/editor.js"></script>
 </body>
-</html> 
+</html>
