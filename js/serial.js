@@ -6,6 +6,14 @@ class FlipperSerial {
         this.buffer = '';
     }
 
+    hasCommandError(response = '') {
+        const normalized = response.toLowerCase();
+        return normalized.includes('error') ||
+            normalized.includes('failed') ||
+            normalized.includes('storage error') ||
+            normalized.includes('cannot');
+    }
+
     async connect() {
         try {
             debugLog.info('Requesting serial port...');
@@ -206,6 +214,22 @@ class FlipperSerial {
             return true;
         } catch (error) {
             debugLog.error(`Delete error: ${error.message}`);
+            return false;
+        }
+    }
+
+    async createDirectory(path) {
+        try {
+            const response = await this.sendCommand(`storage mkdir ${path}`);
+
+            if (this.hasCommandError(response)) {
+                throw new Error(response.trim() || 'Failed to create directory');
+            }
+
+            debugLog.success(`Directory created: ${path}`);
+            return true;
+        } catch (error) {
+            debugLog.error(`Create directory error: ${error.message}`);
             return false;
         }
     }

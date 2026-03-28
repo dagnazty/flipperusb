@@ -153,7 +153,13 @@ document.head.appendChild(styleSheet);
 const toast = new Toast();
 
 // Modal confirmation dialog
-function showConfirmModal(title, message, onConfirm, onCancel) {
+function showConfirmModal(title, message, onConfirm, onCancel, options = {}) {
+    const {
+        confirmLabel = 'Confirm',
+        cancelLabel = 'Cancel',
+        confirmClass = 'danger'
+    } = options;
+
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.innerHTML = `
@@ -161,29 +167,35 @@ function showConfirmModal(title, message, onConfirm, onCancel) {
             <h3 class="modal-title">${title}</h3>
             <p class="modal-content">${message}</p>
             <div class="modal-actions">
-                <button class="flipper-button ghost" id="modalCancel">Cancel</button>
-                <button class="flipper-button danger" id="modalConfirm">Delete</button>
+                <button class="flipper-button ghost" id="modalCancel">${cancelLabel}</button>
+                <button class="flipper-button ${confirmClass}" id="modalConfirm">${confirmLabel}</button>
             </div>
         </div>
     `;
 
     document.body.appendChild(overlay);
 
+    const cleanup = () => {
+        if (!overlay.parentNode) return;
+        document.removeEventListener('keydown', handleEscape);
+        document.body.removeChild(overlay);
+    };
+
     // Handle clicks
     overlay.querySelector('#modalConfirm').addEventListener('click', () => {
-        document.body.removeChild(overlay);
+        cleanup();
         if (onConfirm) onConfirm();
     });
 
     overlay.querySelector('#modalCancel').addEventListener('click', () => {
-        document.body.removeChild(overlay);
+        cleanup();
         if (onCancel) onCancel();
     });
 
     // Close on overlay click
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
-            document.body.removeChild(overlay);
+            cleanup();
             if (onCancel) onCancel();
         }
     });
@@ -191,12 +203,133 @@ function showConfirmModal(title, message, onConfirm, onCancel) {
     // Close on Escape
     const handleEscape = (e) => {
         if (e.key === 'Escape') {
-            document.body.removeChild(overlay);
-            document.removeEventListener('keydown', handleEscape);
+            cleanup();
             if (onCancel) onCancel();
         }
     };
     document.addEventListener('keydown', handleEscape);
+}
+
+function showFormModal(options = {}) {
+    const {
+        title = 'Create Item',
+        message = '',
+        submitLabel = 'Save',
+        cancelLabel = 'Cancel',
+        submitClass = 'primary',
+        fields = [],
+        onSubmit
+    } = options;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    const fieldsHTML = fields.map((field, index) => {
+        const fieldId = `modalField${index}`;
+
+        if (field.type === 'radio') {
+            const optionsHTML = (field.options || []).map((option, optionIndex) => `
+                <label class="modal-choice">
+                    <input
+                        type="radio"
+                        name="${field.name}"
+                        value="${option.value}"
+                        ${option.value === field.value || (!field.value && optionIndex === 0) ? 'checked' : ''}
+                    >
+                    <span class="modal-choice-content">
+                        <strong>${option.label}</strong>
+                        ${option.description ? `<small>${option.description}</small>` : ''}
+                    </span>
+                </label>
+            `).join('');
+
+            return `
+                <fieldset class="modal-fieldset">
+                    <legend>${field.label}</legend>
+                    <div class="modal-choices">${optionsHTML}</div>
+                </fieldset>
+            `;
+        }
+
+        return `
+            <label class="modal-field" for="${fieldId}">
+                <span>${field.label}</span>
+                <input
+                    id="${fieldId}"
+                    name="${field.name}"
+                    type="${field.type || 'text'}"
+                    value="${field.value || ''}"
+                    placeholder="${field.placeholder || ''}"
+                    ${field.required ? 'required' : ''}
+                    ${field.autofocus ? 'autofocus' : ''}
+                >
+                ${field.hint ? `<small>${field.hint}</small>` : ''}
+            </label>
+        `;
+    }).join('');
+
+    overlay.innerHTML = `
+        <div class="modal modal-form">
+            <h3 class="modal-title">${title}</h3>
+            ${message ? `<p class="modal-content">${message}</p>` : ''}
+            <form id="modalForm">
+                <div class="modal-form-fields">${fieldsHTML}</div>
+                <div class="modal-actions">
+                    <button type="button" class="flipper-button ghost" id="modalFormCancel">${cancelLabel}</button>
+                    <button type="submit" class="flipper-button ${submitClass}" id="modalFormSubmit">${submitLabel}</button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const cleanup = () => {
+        if (!overlay.parentNode) return;
+        document.removeEventListener('keydown', handleEscape);
+        document.body.removeChild(overlay);
+    };
+
+    const form = overlay.querySelector('#modalForm');
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(form);
+        const values = Object.fromEntries(formData.entries());
+
+        try {
+            const result = onSubmit ? await onSubmit(values, { close: cleanup }) : true;
+            if (result !== false) {
+                cleanup();
+            }
+        } catch (error) {
+            toast.error(error.message || 'Something went wrong.');
+        }
+    });
+
+    overlay.querySelector('#modalFormCancel').addEventListener('click', cleanup);
+
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            cleanup();
+        }
+    });
+
+    const handleEscape = (event) => {
+        if (event.key === 'Escape') {
+            cleanup();
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    const autofocusField = overlay.querySelector('[autofocus]');
+    if (autofocusField) {
+        autofocusField.focus();
+        autofocusField.select?.();
+    }
+
+    return overlay;
 }
 
 // SVG Icons for file types

@@ -52,6 +52,10 @@
                 <img src="assets/orange_logo.png" alt="Flipper" class="flipper-logo">
                 <h1>FlipperUSB</h1>
                 <div id="statusIndicator" class="status-dot disconnected" title="Disconnected"></div>
+                <div class="connection-status-text" aria-live="polite">
+                    <span id="statusText" class="status-text disconnected">Disconnected</span>
+                    <span id="supportText" class="support-text">Desktop Chrome or Edge with Web Serial</span>
+                </div>
             </div>
             <div class="header-right">
                 <button id="connectBtn" class="flipper-button">
@@ -118,6 +122,15 @@
                             <line x1="9" y1="15" x2="15" y2="15" />
                         </svg>
                         <span>New File</span>
+                    </button>
+                    <button id="newFolderBtn" class="flipper-button small ghost">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                            <line x1="12" y1="11" x2="12" y2="17" />
+                            <line x1="9" y1="14" x2="15" y2="14" />
+                        </svg>
+                        <span>New Folder</span>
                     </button>
                 </div>
 
@@ -203,6 +216,7 @@
                         </button>
                     </div>
                 </div>
+                <div id="editorWelcome" class="editor-welcome" aria-live="polite"></div>
                 <textarea id="editor" disabled placeholder="Select a file to edit..."></textarea>
             </div>
         </main>
